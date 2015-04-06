@@ -80,6 +80,7 @@ struct convert_im_ctx : im_ctx_base {
 
     unsigned int width;
     unsigned int height;
+    std::string crop;
     bool strip;
     bool trim;
     double trimFuzz;
@@ -199,6 +200,10 @@ void DoConvert(uv_work_t* req) {
 
     unsigned int height = context->height;
     if (debug) printf( "height: %d\n", height );
+
+    if ( context->crop.length() > 0 ) {
+      image.crop(Magick::Geometry(context->crop));
+    }
 
     if ( context->strip ) {
         if (debug) printf( "strip: true\n" );
@@ -549,6 +554,9 @@ NAN_METHOD(Convert) {
 
     Local<Value> upscaleValue = obj->Get( NanNew<String>("upscale") );
     context->upscale = upscaleValue->IsUndefined() || upscaleValue->BooleanValue();
+
+    Local<Value> cropValue = obj->Get( NanNew<String>("crop") );
+    context->crop = !cropValue->IsUndefined() ? *NanAsciiString(cropValue) : "";
 
     Local<Value> trimValue = obj->Get( NanNew<String>("trim") );
     if ( (context->trim = ! trimValue->IsUndefined() && trimValue->BooleanValue()) ) {
@@ -1094,3 +1102,4 @@ void init(Handle<Object> exports) {
 // There is no semi-colon after NODE_MODULE as it's not a function (see node.h).
 // see http://nodejs.org/api/addons.html
 NODE_MODULE(imagemagick, init)
+
